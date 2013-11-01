@@ -123,6 +123,10 @@ float             m_display_aspect      = 0.0f;
 bool              m_boost_on_downmix    = false;
 bool              m_gen_log             = false;
 
+int64_t t;
+int64_t tx;
+bool is_start = true;
+
 enum{ERROR=-1,SUCCESS,ONEBYTE};
 
 void sig_handler(int s)
@@ -141,6 +145,7 @@ void sig_handler(int s)
 
 void print_usage()
 {
+  printf("Chris omxplayer mod 2\n");
   printf("Usage: omxplayer [OPTIONS] [FILE]\n");
   printf("Options :\n");
   printf("         -h / --help                    print this help\n");
@@ -473,6 +478,18 @@ static int get_mem_gpu(void)
    if (vc_gencmd(response, sizeof response, "get_mem gpu") == 0)
       vc_gencmd_number_property(response, "gpu", &gpu_mem);
    return gpu_mem;
+}
+
+void wait_start(void) {
+  // Wait until next full half-minute
+  t = m_av_clock->GetTime();
+  tx = 30000 - ((t % 30000000000) / 1000000);
+  printf("=== time in ns: %lld\n", t);
+  printf("=== play in %lld milliseconds\n", tx);
+  m_av_clock->OMXSleep(tx);
+
+  t = m_av_clock->GetTime();
+  printf("=== time in ns: %lld\n", t);
 }
 
 static void blank_background(bool enable)
@@ -1010,6 +1027,20 @@ int main(int argc, char *argv[])
 
   PrintSubtitleInfo();
 
+/*
+  printf("=== t: %lld\n", t);
+  m_av_clock->OMXSleep(5000);
+
+  t = m_av_clock->GetTime();
+  printf("=== t: %lld\n", t);
+  m_av_clock->OMXSleep(5000);
+
+  t = m_av_clock->GetTime();
+  printf("=== t: %lld\n", t);
+  m_av_clock->OMXSleep(5000);
+*/
+  printf("=== is paused: %d\n", m_av_clock->OMXIsPaused());
+
   while(!m_stop)
   {
     if(g_abort)
@@ -1428,6 +1459,11 @@ int main(int argc, char *argv[])
         if (m_av_clock->OMXIsPaused())
         {
           CLog::Log(LOGDEBUG, "Resume %.2f,%.2f (%d,%d,%d,%d) EOF:%d PKT:%p\n", audio_fifo, video_fifo, audio_fifo_low, video_fifo_low, audio_fifo_high, video_fifo_high, m_omx_reader.IsEof(), m_omx_pkt);
+	if (is_start) {
+		wait_start();
+		is_start = false;
+	}
+         printf("main loop: OMXResume\n");
           m_av_clock->OMXResume();
         }
       }

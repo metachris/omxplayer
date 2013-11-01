@@ -18,17 +18,17 @@ else
   ITALIC_FONT="fonts/FreeSansOblique.ttf"
 fi
 
-if [ -e /usr/bin/omxplayer.bin ]; then
-  OMXPLAYER="/usr/bin/omxplayer.bin"
-else
+#if [ -e /usr/bin/omxplayer.bin ]; then
+#  OMXPLAYER="/usr/bin/omxplayer.bin"
+#else
   OMXPLAYER="./omxplayer.bin"
-fi
+#fi
 
-if [ -e /usr/lib/omxplayer ]; then
-  export LD_LIBRARY_PATH=/opt/vc/lib:/usr/lib/omxplayer:$LD_LIBRARY_PATH
-else
+#if [ -e /usr/lib/omxplayer ]; then
+#  export LD_LIBRARY_PATH=/opt/vc/lib:/usr/lib/omxplayer:$LD_LIBRARY_PATH
+#else
   export LD_LIBRARY_PATH=$PWD/ffmpeg_compiled/usr/local/lib:/opt/vc/lib:$LD_LIBRARY_PATH
-fi
+#fi
 
 XRES=1920
 YRES=1080
@@ -45,7 +45,10 @@ if test -z "$DBUS_SESSION_BUS_ADDRESS"; then
   eval $(dbus-launch --sh-syntax)
 fi
 
-$OMXPLAYER --font $FONT --italic-font $ITALIC_FONT "$@"
+#$OMXPLAYER --font $FONT --italic-font $ITALIC_FONT "$@"
+echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+echo "$OMXPLAYER --font $FONT "$@""
+$OMXPLAYER --font $FONT "$@"
 
 if [ -e $FBSET ]; then
   fbset -xres ${XRES} -yres ${YRES}

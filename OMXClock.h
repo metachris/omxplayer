@@ -94,6 +94,7 @@ public:
   int64_t GetAbsoluteClock();
   double GetClock(bool interpolated = true);
   static void OMXSleep(unsigned int dwMilliSeconds);
+  int64_t GetTime(void);
 };
 
 #endif

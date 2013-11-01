@@ -24,6 +24,8 @@
 #include "system.h"
 #endif
 
+#include <stdio.h>
+
 #if defined(HAVE_OMXLIB)
 
 //#include "video/VideoReferenceClock.h"
@@ -440,6 +442,8 @@ bool OMXClock::OMXResume(bool lock /* = true */)
   if(m_omx_clock.GetComponent() == NULL)
     return false;
 
+  printf("OMXClock::OMXResume\n");
+
   if(m_pause)
   {
     if(lock)
@@ -558,5 +562,12 @@ double OMXClock::GetClock(bool interpolated /*= true*/)
 {
   return GetAbsoluteClock();
 }
+
+int64_t OMXClock::GetTime(void) {
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+    return( ((int64_t)now.tv_sec * 1000000000L) + now.tv_nsec );
+}
+
 #endif
 

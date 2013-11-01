@@ -50,7 +50,7 @@ version:
 
 omxplayer.bin: version $(OBJS)
 	$(CXX) $(LDFLAGS) -o omxplayer.bin $(OBJS) -lvchiq_arm -lvcos -lrt -lpthread -lavutil -lavcodec -lavformat -lswscale -lswresample -lpcre
-	#arm-unknown-linux-gnueabi-strip omxplayer.bin
+	strip omxplayer.bin
 
 clean:
 	for i in $(OBJS); do (if test -e "$$i"; then ( rm $$i ); fi ); done
@@ -73,3 +73,6 @@ dist: omxplayer.bin
 	cp README.md $(DIST)/usr/share/doc/README
 	cp -a ffmpeg_compiled/usr/local/lib/*.so* $(DIST)/usr/lib/omxplayer/
 	tar -czf omxplayer-dist.tar.gz $(DIST)
+
+install: dist
+	cp omxplayer-dist/* / -r
