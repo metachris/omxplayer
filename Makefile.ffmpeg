@@ -244,7 +244,7 @@ clean:
 
 checkout: 
 	git clone git://source.ffmpeg.org/ffmpeg ffmpeg; \
-	cd ffmpeg; git checkout n2.0
+	cd ffmpeg; git checkout n2.1
 
 install:
 	cd ffmpeg; make DESTDIR="$(WORK)/ffmpeg_compiled" install

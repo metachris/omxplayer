@@ -56,9 +56,9 @@ public:
   unsigned int GetAudioRenderingLatency();
   float GetMaxLevel(double &pts);
   COMXAudio();
-  bool Initialize(const CStdString& device, int iChannels, enum PCMChannels *channelMap,
-                           COMXStreamInfo &hints, unsigned int downmixChannels, unsigned int uiSamplesPerSec, unsigned int uiBitsPerSample, bool boostOnDownmix,
-                           OMXClock *clock, bool bUsePassthrough = false, bool bUseHWDecode = false, float fifo_size = 0);
+  bool Initialize(const CStdString& device, int iChannels, uint64_t channelMap,
+                           COMXStreamInfo &hints, enum PCMLayout layout, unsigned int uiSamplesPerSec, unsigned int uiBitsPerSample, bool boostOnDownmix,
+                           OMXClock *clock, bool bUsePassthrough = false, bool bUseHWDecode = false, bool is_live = false, float fifo_size = 0);
   ~COMXAudio();
   bool PortSettingsChanged();
 
@@ -90,6 +90,11 @@ public:
   void PrintDTS(OMX_AUDIO_PARAM_DTSTYPE *dtsparam);
   unsigned int SyncDTS(BYTE* pData, unsigned int iSize);
   unsigned int SyncAC3(BYTE* pData, unsigned int iSize);
+  void UpdateAttenuation();
+  void BuildChannelMap(enum PCMChannels *channelMap, uint64_t layout);
+  int BuildChannelMapCEA(enum PCMChannels *channelMap, uint64_t layout);
+  void BuildChannelMapOMX(enum OMX_AUDIO_CHANNELTYPE *channelMap, uint64_t layout);
+  uint64_t GetChannelLayout(enum PCMLayout layout);
 
 private:
   bool          m_Initialized;
@@ -104,13 +109,11 @@ private:
   unsigned int  m_ChunkLen;
   unsigned int  m_InputChannels;
   unsigned int  m_OutputChannels;
-  unsigned int  m_downmix_channels;
   unsigned int  m_BitsPerSample;
   float		m_maxLevel;
-  float		m_avgLevel;
   float         m_amplification;
   float         m_attenuation;
-  float         m_desired_attenuation;
+  float         m_submitted;
   COMXCoreComponent *m_omx_clock;
   OMXClock      *m_av_clock;
   bool          m_settings_changed;
@@ -125,21 +128,34 @@ private:
   bool          m_submitted_eos;
   bool          m_failed_eos;
   float         m_fifo_size;
+  bool          m_live;
+
+  OMX_AUDIO_CHANNELTYPE m_input_channels[OMX_AUDIO_MAXCHANNELS];
+  OMX_AUDIO_CHANNELTYPE m_output_channels[OMX_AUDIO_MAXCHANNELS];
   OMX_AUDIO_PARAM_PCMMODETYPE m_pcm_output;
   OMX_AUDIO_PARAM_PCMMODETYPE m_pcm_input;
   OMX_AUDIO_PARAM_DTSTYPE     m_dtsParam;
   WAVEFORMATEXTENSIBLE        m_wave_header;
+  typedef struct {
+    double pts;
+    float level;
+  } amplitudes_t;
+  std::deque<amplitudes_t> m_ampqueue;
+  float m_downmix_matrix[OMX_AUDIO_MAXCHANNELS*OMX_AUDIO_MAXCHANNELS];
 
 protected:
-  COMXCoreComponent m_omx_render;
+  COMXCoreComponent m_omx_render_analog;
+  COMXCoreComponent m_omx_render_hdmi;
+  COMXCoreComponent m_omx_splitter;
   COMXCoreComponent m_omx_mixer;
   COMXCoreComponent m_omx_decoder;
-  COMXCoreTunel     m_omx_tunnel_clock;
+  COMXCoreTunel     m_omx_tunnel_clock_analog;
+  COMXCoreTunel     m_omx_tunnel_clock_hdmi;
   COMXCoreTunel     m_omx_tunnel_mixer;
   COMXCoreTunel     m_omx_tunnel_decoder;
+  COMXCoreTunel     m_omx_tunnel_splitter_analog;
+  COMXCoreTunel     m_omx_tunnel_splitter_hdmi;
   DllAvUtil         m_dllAvUtil;
-  OMX_AUDIO_CHANNELTYPE m_input_channels[OMX_AUDIO_MAXCHANNELS];
-  CPCMRemap         m_remap;
   CCriticalSection m_critSection;
 };
 #endif
