@@ -42,6 +42,10 @@ extern "C" {
 #pragma warning(disable:4244)
 #endif
 
+#if !defined(AVCODEC_MAX_AUDIO_FRAME_SIZE)     // @FFMPEGHEAD TODO: stick with this or check for possible other solution?
+  #define AVCODEC_MAX_AUDIO_FRAME_SIZE 192000    // 1 second of 48khz 32bit audio (defintion orginated from ffmpeg)
+#endif
+
 #if (defined USE_EXTERNAL_FFMPEG)
   #if (defined HAVE_LIBAVCODEC_AVCODEC_H)
     #include <libavcodec/avcodec.h>
@@ -72,8 +76,8 @@ public:
   virtual void avcodec_register_all(void)=0;
   virtual void avcodec_flush_buffers(AVCodecContext *avctx)=0;
   virtual int avcodec_open2_dont_call(AVCodecContext *avctx, AVCodec *codec, AVDictionary **options)=0;
-  virtual AVCodec *avcodec_find_decoder(enum CodecID id)=0;
-  virtual AVCodec *avcodec_find_encoder(enum CodecID id)=0;
+  virtual AVCodec *avcodec_find_decoder(enum AVCodecID id)=0;
+  virtual AVCodec *avcodec_find_encoder(enum AVCodecID id)=0;
   virtual int avcodec_close_dont_call(AVCodecContext *avctx)=0;
   virtual AVFrame *avcodec_alloc_frame(void)=0;
   virtual int avpicture_fill(AVPicture *picture, uint8_t *ptr, PixelFormat pix_fmt, int width, int height)=0;
@@ -125,8 +129,8 @@ public:
   }
   virtual int avcodec_open2_dont_call(AVCodecContext *avctx, AVCodec *codec, AVDictionary **options) { *(int *)0x0 = 0; return 0; }
   virtual int avcodec_close_dont_call(AVCodecContext *avctx) { *(int *)0x0 = 0; return 0; }
-  virtual AVCodec *avcodec_find_decoder(enum CodecID id) { return ::avcodec_find_decoder(id); }
-  virtual AVCodec *avcodec_find_encoder(enum CodecID id) { return ::avcodec_find_encoder(id); }
+  virtual AVCodec *avcodec_find_decoder(enum AVCodecID id) { return ::avcodec_find_decoder(id); }
+  virtual AVCodec *avcodec_find_encoder(enum AVCodecID id) { return ::avcodec_find_encoder(id); }
   virtual int avcodec_close(AVCodecContext *avctx)
   {
     return ::avcodec_close(avctx);
@@ -196,8 +200,8 @@ class DllAvCodec : public DllDynamic, DllAvCodecInterface
   LOAD_SYMBOLS();
 
   DEFINE_METHOD0(void, avcodec_register_all_dont_call)
-  DEFINE_METHOD1(AVCodec*, avcodec_find_decoder, (enum CodecID p1))
-  DEFINE_METHOD1(AVCodec*, avcodec_find_encoder, (enum CodecID p1))
+  DEFINE_METHOD1(AVCodec*, avcodec_find_decoder, (enum AVCodecID p1))
+  DEFINE_METHOD1(AVCodec*, avcodec_find_encoder, (enum AVCodecID p1))
   DEFINE_METHOD1(int, avcodec_close_dont_call, (AVCodecContext *p1))
   DEFINE_METHOD0(AVFrame*, avcodec_alloc_frame)
   DEFINE_METHOD5(int, avpicture_fill, (AVPicture *p1, uint8_t *p2, PixelFormat p3, int p4, int p5))
